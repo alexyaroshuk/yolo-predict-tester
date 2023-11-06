@@ -248,7 +248,7 @@ useEffect(() => {
         </p>
       )}
       <div className="flex flex-col mt-4">
-        <p className="text-xl mt-2">Upload image</p>
+        <p className="text-xl mt-2">Upload image(JPG only)</p>
         <div className="flex justify-between items-start mt-2">
           <div>
             <input
