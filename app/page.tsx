@@ -272,7 +272,7 @@ useEffect(() => {
       <hr className="my-4 border-gray-700" />
 
       <div className="flex flex-col">
-        <p className="text-xl mt-2">Upload model</p>
+       {/*  <p className="text-xl mt-2">Upload model</p>
         <div className="flex justify-between items-start mt-2">
           <input
             type="file"
@@ -281,12 +281,13 @@ useEffect(() => {
             disabled={isLoading}
             ref={fileInputRef}
           />
-
+ */}
           <div className="flex flex-col items-end max-w-1/2">
             <p>Current model: </p>{" "}
             <p className="text-white font-bold">
               {isLoadingModel ? "Loading model..." : currentModel}
             </p>
+            <a href="https://drive.google.com/drive/folders/1IY27vNFNr5GC9clNgasYnij9ssSd84yV" className="text-blue-500 hover:underline mt-2">Source</a> {/* Replace "/your-link-path" and "Your Link Text" with your actual link and text */}
             <button
               onClick={downloadModel}
               className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded mt-4"
@@ -294,7 +295,7 @@ useEffect(() => {
               Download model
             </button>
           </div>
-        </div>
+        {/* </div> */}
       </div>
 
       <hr className="my-4 border-gray-700" />
