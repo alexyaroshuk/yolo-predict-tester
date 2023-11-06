@@ -24,7 +24,7 @@ export default function Home() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
-  const SERVER_URL = process.env.REACT_APP_SERVER_URL;
+  const SERVER_URL = process.env.SERVER_URL;
   const PREDICT_URL = `${SERVER_URL}/predict`;
   const UPLOAD_MODEL_URL = `${SERVER_URL}/upload_model`;
   const CURRENT_MODEL_URL = `${SERVER_URL}/current_model`;
