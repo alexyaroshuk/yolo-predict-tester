@@ -30,6 +30,8 @@ export default function Home() {
   const CURRENT_MODEL_URL = `${SERVER_URL}/current_model`;
   const DOWNLOAD_MODEL_URL = `${SERVER_URL}/download_model`;
 
+
+
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -189,6 +191,10 @@ export default function Home() {
 
 useEffect(() => {
   getCurrentModel();
+}, []);
+
+useEffect(() => {
+  console.log('SERVER_URL:', process.env.REACT_APP_SERVER_URL);
 }, []);
 
   const downloadModel = () => {
