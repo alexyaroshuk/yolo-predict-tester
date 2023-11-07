@@ -193,10 +193,6 @@ useEffect(() => {
   getCurrentModel();
 }, []);
 
-useEffect(() => {
-  console.log('SERVER_URL:', process.env.SERVER_URL);
-}, []);
-
   const downloadModel = () => {
     window.location.href = DOWNLOAD_MODEL_URL;
   };
