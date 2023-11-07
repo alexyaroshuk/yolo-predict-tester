@@ -209,17 +209,29 @@ useEffect(() => {
   // Check server status when the page loads
   useEffect(() => {
     setIsLoadingServerStatus(true);
-    fetch(CURRENT_MODEL_URL)
+  
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Request timed out")), 5000)
+    );
+  
+    const request = fetch(CURRENT_MODEL_URL)
       .then((response) => {
         if (response.ok) {
           setServerStatus("online");
         } else {
           setServerStatus("offline");
         }
-        setIsLoadingServerStatus(false);
       })
       .catch((error) => {
         setError("Failed to check server status: " + error.message);
+      });
+  
+    Promise.race([request, timeout])
+      .catch((error) => {
+        setError("Failed to check server status: " + error.message);
+        setServerStatus("offline");
+      })
+      .finally(() => {
         setIsLoadingServerStatus(false);
       });
   }, [CURRENT_MODEL_URL]);
@@ -233,7 +245,7 @@ useEffect(() => {
   const getServerStatusText = () => {
     if (isLoadingServerStatus) return "Loading server status...";
     if (serverStatus === "online") return "Online";
-    return "Offline";
+    return "Offline. Сервер отключается если нет трафика в течение 15 минут. Попробуйте снова через 1 минуту.";
   };
 
   return (
@@ -241,6 +253,7 @@ useEffect(() => {
       <div className="flex flex-col my-4">
         <h1 className="text-4xl font-bold my-2">Yolo predict tester</h1>
         <p>Run your image through yolo model</p>
+        <p> </p>
       </div>
       {isLoadingServerStatus === null ? null : (
         <p style={{ color: getServerStatusColor() }}>
