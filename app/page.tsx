@@ -134,7 +134,7 @@ export default function Home() {
     // The rest of your code...
   };
 
-  /* const handleModelChange = async (
+  const handleModelChangeUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (event.target?.files?.[0]) {
@@ -191,7 +191,7 @@ export default function Home() {
         setIsLoading(false);
       }
     }
-  }; */
+  };
 
   const reUploadImage = async () => {
     if (lastImageFile) {
@@ -325,16 +325,16 @@ useEffect(() => {
       <hr className="my-4 border-gray-700" />
 
       <div className="flex flex-col">
-       {/*  <p className="text-xl mt-2">Upload model</p>
+        <p className="text-xl mt-2">Upload model</p>
         <div className="flex justify-between items-start mt-2">
           <input
             type="file"
             id="model-input"
-            onChange={handleModelChange}
+            onChange={handleModelChangeUpload}
             disabled={isLoading}
             ref={fileInputRef}
           />
- */}
+
  <select
   id="model-select"
   onChange={handleModelChange}
@@ -440,6 +440,7 @@ useEffect(() => {
 
       {isLoading && <p className="mt-4">Loading...</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
+    </div>
     </div>
   );
 }
