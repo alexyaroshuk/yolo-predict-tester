@@ -23,6 +23,7 @@ export default function Home() {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const [projectStructure, setProjectStructure] = useState<any>(null);
 
   const [models, setModels] = useState<string[]>([]);
 
@@ -39,6 +40,16 @@ export default function Home() {
       setModels(data.models);
     } catch (error) {
       console.error('Failed to fetch models:', error);
+    }
+  };
+
+  const fetchProjectStructure = async () => {
+    try {
+      const response = await fetch(`${SERVER_URL}/project_structure`);
+      const data = await response.json();
+      setProjectStructure(data);
+    } catch (error) {
+      console.error('Failed to fetch project structure:', error);
     }
   };
 
@@ -300,6 +311,16 @@ useEffect(() => {
           )}
         </div>
       </div>
+
+      <div className="flex flex-col mt-4">
+        <p className="text-xl mt-2">Check structure</p>
+
+      <button onClick={fetchProjectStructure}>
+  Fetch Project Structure
+</button>
+<pre>{JSON.stringify(projectStructure, null, 2)}</pre>
+</div>
+
 
       <hr className="my-4 border-gray-700" />
 
