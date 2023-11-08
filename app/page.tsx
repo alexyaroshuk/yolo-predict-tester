@@ -24,13 +24,23 @@ export default function Home() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
+  const [models, setModels] = useState<string[]>([]);
+
   const SERVER_URL = process.env.SERVER_URL;
   const PREDICT_URL = `${SERVER_URL}/predict`;
   const UPLOAD_MODEL_URL = `${SERVER_URL}/upload_model`;
   const CURRENT_MODEL_URL = `${SERVER_URL}/current_model`;
   const DOWNLOAD_MODEL_URL = `${SERVER_URL}/download_model`;
 
-
+  const fetchModels = async () => {
+    try {
+      const response = await fetch(`${SERVER_URL}/models`);
+      const data = await response.json();
+      setModels(data.models);
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+    }
+  };
 
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -106,6 +116,14 @@ export default function Home() {
   };
 
   const handleModelChange = async (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const selectedModel = event.target.value;
+  
+    // The rest of your code...
+  };
+
+  /* const handleModelChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (event.target?.files?.[0]) {
@@ -162,7 +180,7 @@ export default function Home() {
         setIsLoading(false);
       }
     }
-  };
+  }; */
 
   const reUploadImage = async () => {
     if (lastImageFile) {
@@ -201,6 +219,11 @@ useEffect(() => {
   useEffect(() => {
     console.log("Current model:", currentModel);
   }, [currentModel]);
+
+  useEffect(() => {
+    fetchModels();
+  }, []);
+  
 
   // Check server status when the page loads
   useEffect(() => {
@@ -291,6 +314,17 @@ useEffect(() => {
             ref={fileInputRef}
           />
  */}
+ <select
+  id="model-select"
+  onChange={handleModelChange}
+  disabled={isLoading}
+>
+  {models.map((model) => (
+    <option key={model} value={model}>
+      {model}
+    </option>
+  ))}
+</select>
           <div className="flex flex-col items-end max-w-1/2">
             <p>Current model: </p>{" "}
             <p className="text-white font-bold">

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    SERVER_URL: process.env.SERVER_URL,
+    SERVER_URL: "http://127.0.0.1:8000",
   },
 };
 
