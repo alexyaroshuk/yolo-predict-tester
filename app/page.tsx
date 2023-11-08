@@ -26,6 +26,7 @@ export default function Home() {
   const [projectStructure, setProjectStructure] = useState<any>(null);
 
   const [models, setModels] = useState<string[]>([]);
+  const [diskContent, setDiskContent] = useState<string[]>([]);
 
   const SERVER_URL = process.env.SERVER_URL;
   const PREDICT_URL = `${SERVER_URL}/predict`;
@@ -50,6 +51,16 @@ export default function Home() {
       setProjectStructure(data);
     } catch (error) {
       console.error('Failed to fetch project structure:', error);
+    }
+  };
+
+  const fetchDiskContent = async () => {
+    try {
+      const response = await fetch(`${SERVER_URL}/disk_content`);
+      const data = await response.json();
+      setDiskContent(data.content);
+    } catch (error) {
+      console.error('Failed to fetch disk content:', error);
     }
   };
 
@@ -319,6 +330,12 @@ useEffect(() => {
   Fetch Project Structure
 </button>
 <pre>{JSON.stringify(projectStructure, null, 2)}</pre>
+
+<button onClick={fetchDiskContent}>
+  Fetch Disk Content
+</button>
+// Display the disk content in a text element
+<pre>{JSON.stringify(diskContent, null, 2)}</pre>
 </div>
 
 
