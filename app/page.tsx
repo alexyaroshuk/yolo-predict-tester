@@ -143,12 +143,12 @@ export default function Home() {
     const selectedModel = event.target.value;
   
     try {
+      const formData = new FormData();
+      formData.append('model_name', selectedModel);
+  
       const response = await fetch(`${SERVER_URL}/select_model`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ model_name: selectedModel })
+        body: formData
       });
   
       if (!response.ok) {
@@ -162,7 +162,7 @@ export default function Home() {
       console.error('Failed to select model:', error);
     }
     // Inside handleModelChange function, after setting the current model
-await getCurrentModel();
+    await getCurrentModel();
   };
 
   const handleModelChangeUpload = async (
