@@ -142,7 +142,27 @@ export default function Home() {
   ) => {
     const selectedModel = event.target.value;
   
-    // The rest of your code...
+    try {
+      const response = await fetch(`${SERVER_URL}/select_model`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ model_name: selectedModel })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log(data.message);
+      setCurrentModel(data.model_name);
+    } catch (error) {
+      console.error('Failed to select model:', error);
+    }
+    // Inside handleModelChange function, after setting the current model
+await getCurrentModel();
   };
 
   const handleModelChangeUpload = async (
@@ -190,6 +210,12 @@ export default function Home() {
           console.log("Model name:", data.model_name);
           setCurrentModel(data.model_name);
           console.log("Current model:", currentModel);
+
+          // Select the uploaded model
+  await handleModelChange({ target: { value: data.model_name } } as React.ChangeEvent<HTMLSelectElement>);
+
+
+          
         }
       } catch (error) {
         console.error(error);
@@ -199,6 +225,7 @@ export default function Home() {
         }
         setError(errorMessage);
       } finally {
+        
         setIsLoading(false);
       }
     }
@@ -215,7 +242,8 @@ export default function Home() {
     }
   };
 
-  const getCurrentModel = async () => {
+// This function fetches the current model from the server
+const getCurrentModel = async () => {
   setIsLoadingModel(true);
   const response = await fetch(CURRENT_MODEL_URL, {
     credentials: "include", // Include cookies
@@ -228,6 +256,8 @@ export default function Home() {
   }
   setIsLoadingModel(false);
 };
+
+
 
 useEffect(() => {
   getCurrentModel();
