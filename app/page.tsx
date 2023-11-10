@@ -140,15 +140,15 @@ export default function Home() {
   const handleModelChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const selectedModel = event.target.value;
+      const selectedModel = event.target.value;
   
     try {
-      const formData = new FormData();
-      formData.append('model_name', selectedModel);
-  
       const response = await fetch(`${SERVER_URL}/select_model`, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ model_name: selectedModel })
       });
   
       if (!response.ok) {
