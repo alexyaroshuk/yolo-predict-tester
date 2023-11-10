@@ -140,15 +140,11 @@ export default function Home() {
   const handleModelChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-      const selectedModel = event.target.value;
+    const selectedModel = event.target.value;
   
     try {
-      const response = await fetch(`${SERVER_URL}/select_model`, {
+      const response = await fetch(`${SERVER_URL}/select_model?model_name=${encodeURIComponent(selectedModel)}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ model_name: selectedModel })
       });
   
       if (!response.ok) {
