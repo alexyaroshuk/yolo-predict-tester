@@ -29,6 +29,7 @@ export default function Home() {
   const [diskContent, setDiskContent] = useState<string[]>([]);
 
   const SERVER_URL = process.env.SERVER_URL;
+  const GETMODELS_URL = `${SERVER_URL}/models`;
   const PREDICT_URL = `${SERVER_URL}/predict`;
   const UPLOAD_MODEL_URL = `${SERVER_URL}/upload_model`;
   const CURRENT_MODEL_URL = `${SERVER_URL}/current_model`;
@@ -36,7 +37,11 @@ export default function Home() {
 
   const fetchModels = async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/models`);
+      const response = await fetch(GETMODELS_URL, {
+
+        credentials: "include", // Include cookies
+      });
+
       const data = await response.json();
       setModels(data.models);
     } catch (error) {
@@ -46,7 +51,9 @@ export default function Home() {
 
   const fetchProjectStructure = async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/project_structure`);
+          const response = await fetch(`${SERVER_URL}/project_structure`, {
+      credentials: 'include',  // Include cookies
+    });
       const data = await response.json();
       setProjectStructure(data);
     } catch (error) {
@@ -56,7 +63,9 @@ export default function Home() {
 
   const fetchDiskContent = async () => {
     try {
-      const response = await fetch(`${SERVER_URL}/disk_content`);
+      const response = await fetch(`${SERVER_URL}/disk_content`, {
+        credentials: 'include',  // Include cookies
+      });
       const data = await response.json();
       setDiskContent(data.content);
     } catch (error) {
@@ -145,6 +154,7 @@ export default function Home() {
     try {
       const response = await fetch(`${SERVER_URL}/select_model?model_name=${encodeURIComponent(selectedModel)}`, {
         method: 'POST',
+        credentials: 'include', 
       });
   
       if (!response.ok) {
@@ -157,8 +167,6 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to select model:', error);
     }
-    // Inside handleModelChange function, after setting the current model
-    await getCurrentModel();
   };
 
   const handleModelChangeUpload = async (
