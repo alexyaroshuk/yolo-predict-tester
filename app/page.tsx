@@ -268,7 +268,7 @@ export default function Home() {
     } finally {
       setIsLoading(false);
    
-    setError(null);
+    
 
 
     }
