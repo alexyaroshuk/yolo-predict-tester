@@ -13,7 +13,6 @@ export default function Home() {
   const [currentModel, setCurrentModel] = useState<string>("No model selected");
   const [modelDescription, setModelDescription] = useState<string | null>(null);
   const [modelPhoto, setModelPhoto] = useState<string | null>(null);
-  
 
   const [serverStatus, setServerStatus] = useState<string | null>(null);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState<
@@ -27,9 +26,26 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("image");
   const [isLoadingModelData, setIsLoadingModelData] = useState(false);
 
+  const [isResultReceived, setIsResultReceived] = useState(false);
+  interface DataType {
+    type: string;
+    image?: string;
+    results: any[];
+  }
+
+  interface Image {
+    filename: string;
+    is_video: boolean;
+    thumbnail?: string;
+  }
+  
+  const [sharedImages, setSharedImages] = useState<Image[]>([]);
+  
+  const [data, setData] = useState<DataType | null>(null);
+
   const [currentImage, setCurrentImage] = useState<string | null>(null);
 
-  const [sharedImages, setSharedImages] = useState<string[]>([]);
+
   const [userImages, setUserImages] = useState<string[]>([]);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -123,15 +139,60 @@ export default function Home() {
     }
   }; */
 
+ /*  function getVideoThumbnail(file: Blob) {
+    return new Promise((resolve, reject) => {
+      // Create a video element
+      const video = document.createElement('video');
+  
+      // When the metadata has been loaded, set the time to the thumbnail frame time
+      video.onloadedmetadata = function() {
+        video.currentTime = 0;
+      };
+  
+      // When the video has seeked to the correct time, draw the frame on a canvas
+      video.onseeked = function() {
+        // Create a canvas and draw the video frame on it
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+if (!ctx) {
+  reject('Could not create 2D context');
+  return;
+}
+ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+        // Convert the canvas to a data URL
+        const thumbnail = canvas.toDataURL('image/jpeg');
+  
+        // Resolve the promise with the thumbnail
+        resolve(thumbnail);
+      };
+  
+      // Set the video source
+      video.src = URL.createObjectURL(file);
+  
+      // Catch any errors
+      video.onerror = function(err) {
+        reject(err);
+      };
+    });
+  } */
+
   const handlePredict = async () => {
     if (!currentImage) {
       setError("No image selected for prediction.");
       return;
     }
 
+    console.log("cur image", currentImage)
+
     setIsLoading(true);
+    setData(null);
     setError(null);
     setImage(null); // Clear the image state variable
+    setIsResultReceived(false);
 
     try {
       // Convert the current image data URL to a Blob
@@ -139,7 +200,31 @@ export default function Home() {
       const blob = await blobResponse.blob();
 
       const formData = new FormData();
-      formData.append("file", blob, "image.jpg");
+      /* const filename = currentImage.split('/').pop(); */
+
+      // Check if image is not null before appending it to formData
+      /* if (image) {
+        // Convert the data URL to a Blob
+        const response = await fetch(image);
+        const blob = await response.blob();
+    
+        formData.append('file', blob, 'image.jpg');
+      } */
+          // Provide a default filename if currentImage is a data URL
+        // Determine the file extension based on the blob type
+        let extension = '';
+        if (blob.type === 'image/jpeg') {
+          extension = '.jpg';
+        } else if (blob.type === 'video/mp4') {
+          extension = '.mp4';
+          
+        }
+    
+        // Provide a default filename if currentImage is a data URL
+        const filename = currentImage.startsWith('data:') ? `file${extension}` : currentImage.split('/').pop();
+    
+        formData.append("file", blob, filename);
+
 
       const predictResponse = await fetch(PREDICT_URL, {
         method: "POST",
@@ -151,11 +236,21 @@ export default function Home() {
         throw new Error(`HTTP error! status: ${predictResponse.status}`);
       }
 
-      const data = await predictResponse.json();
-      const base64String = data.image;
-      setImage(`data:image/jpeg;base64,${base64String}`); // Store the new image URL in state
-      setModelUsed(data.model_used); // Store the model used in state
-      setResults(data.results);
+      const responseData = await predictResponse.json();
+
+      if (responseData.type === 'image') {
+          const base64String = responseData.image;
+          setImage(`responseData:image/jpeg;base64,${base64String}`); // Store the new image URL in state
+          setModelUsed(responseData.model_used); // Store the model used in state
+          setResults(responseData.results);
+      } else if (responseData.type === 'video') {
+          // Handle video results
+          // responseData.results is now an array of objects, each with a 'frame', 'results', and 'annotated_image' property
+          setResults(responseData.results);
+          setModelUsed(responseData.model_used); // Store the model used in state
+      }
+      setData(responseData); // Set data to the response data
+      setIsResultReceived(true);
     } catch (error) {
       console.error(error);
       let errorMessage = "An error occurred";
@@ -175,13 +270,20 @@ export default function Home() {
       const file = event.target.files[0];
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
 
-      if (fileExtension !== "png" && fileExtension !== "jpg") {
+     /*  if (fileExtension !== "png" && fileExtension !== "jpg") {
         setError("Only PNG and JPG images are accepted.");
         if (imageInputRef.current) {
           imageInputRef.current.value = "";
         }
         return;
-      }
+      } */
+
+      if (fileExtension === 'mp4') {
+        // If the file is a video, create a thumbnail
+        /* const thumbnail = await getVideoThumbnail(file);
+        // Now you can use the thumbnail as an image source
+        setCurrentImage(thumbnail as string); */
+      } else {
 
       setLastImageFile(event.target.files[0]);
 
@@ -196,7 +298,7 @@ export default function Home() {
         setUploadedImage(e.target?.result as string);
       };
       readerForDisplay.readAsDataURL(event.target.files[0]);
-    }
+    }}
     /* fetchUserImages(); */
   };
 
@@ -322,42 +424,40 @@ export default function Home() {
     }
   }; */
 
-  const handleModelChangeUpload = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleModelUpload = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   
-    const modelFileInput = event.currentTarget.elements.namedItem(
-      "model_file"
-    ) as HTMLInputElement;
+    const modelFileInput = event.currentTarget.elements.namedItem('model_file') as HTMLInputElement;
     const modelFile = modelFileInput.files?.[0];
-    const modelFileExtension = modelFile?.name.match(/\.(.+)$/)?.[1]?.toLowerCase();
+    const modelFileExtension = modelFile?.name.split(".").pop()?.toLowerCase();
   
-    if (modelFileExtension !== "pt") {
+    if (modelFile && modelFileExtension !== "pt") {
       setError("Only .pt files are accepted for the model.");
       modelFileInput.value = ""; // Clear the file input
       return;
     }
   
-    const photoInput = event.currentTarget.elements.namedItem(
-      "photo"
-    ) as HTMLInputElement;
-    const photoFile = photoInput.files?.[0];
-    const photoFileExtension = photoFile?.name.match(/\.(.+)$/)?.[1]?.toLowerCase();
+    const photoFileInput = event.currentTarget.elements.namedItem('photo') as HTMLInputElement;
+    const photoFile = photoFileInput.files?.[0];
+    const photoFileExtension = photoFile?.name.split(".").pop()?.toLowerCase();
   
-    if (photoFile && photoFileExtension !== "jpg" && photoFileExtension !== "png") {
+    if (
+      photoFile &&
+      photoFileExtension !== "jpg" &&
+      photoFileExtension !== "png"
+    ) {
       setError("Only JPG and PNG images are accepted for the photo.");
-      photoInput.value = ""; // Clear the file input
+      photoFileInput.value = ""; // Clear the file input
       return;
     }
-  
+
     const formData = new FormData(event.currentTarget);
     formData.append("description", description);
 
     setIsLoading(true);
     setError(null);
     setModel(null); // Clear the previous model
-  
+
     try {
       console.log("Sending model to server...");
       const response = await fetch(UPLOAD_MODEL_URL, {
@@ -365,24 +465,23 @@ export default function Home() {
         body: formData,
         credentials: "include", // Include cookies
       });
-  
-         // Get the model name from the response
-    const data = await response.json();
-    console.log("Response data:", data);
-    if (data.model_name) {
-      console.log("Model name:", data.model_name);
-      setCurrentModel(data.model_name);
-      console.log("Current model:", currentModel);
 
-      // Select the uploaded model
-      await handleModelChange({
-        target: { value: data.model_name },
-      } as React.ChangeEvent<HTMLSelectElement>);
-    }
+      // Get the model name from the response
+      const data = await response.json();
+      console.log("Response data:", data);
+      if (data.model_name) {
+        console.log("Model name:", data.model_name);
+        setCurrentModel(data.model_name);
+        console.log("Current model:", currentModel);
 
-    // Fetch the models
-    await fetchModels();
+        // Select the uploaded model
+        await handleModelChange({
+          target: { value: data.model_name },
+        } as React.ChangeEvent<HTMLSelectElement>);
+      }
 
+      // Fetch the models
+      await fetchModels();
     } catch (error) {
       let errorMessage = "An error occurred";
       if (error instanceof Error) {
@@ -406,26 +505,26 @@ export default function Home() {
     }
   };
 
- // This function fetches the current model from the server
-const getCurrentModel = async () => {
-  setIsLoadingModel(true);
-  const response = await fetch(CURRENT_MODEL_URL, {
-    credentials: "include", // Include cookies
-  });
-  const data = await response.json();
-  if (data.model_used) {
-    setCurrentModel(data.model_used);
-    // Fetch the model info for the current model
-    fetchModelInfo(data.model_used);
-  } else {
-    setCurrentModel("No model selected");
-  }
-  setIsLoadingModel(false);
-};
+  // This function fetches the current model from the server
+  const getCurrentModel = async () => {
+    setIsLoadingModel(true);
+    const response = await fetch(CURRENT_MODEL_URL, {
+      credentials: "include", // Include cookies
+    });
+    const data = await response.json();
+    if (data.model_used) {
+      setCurrentModel(data.model_used);
+      // Fetch the model info for the current model
+      fetchModelInfo(data.model_used);
+    } else {
+      setCurrentModel("No model selected");
+    }
+    setIsLoadingModel(false);
+  };
 
-useEffect(() => {
-  getCurrentModel();
-}, []);
+  useEffect(() => {
+    getCurrentModel();
+  }, []);
 
   const [userId, setUserId] = useState(null);
 
@@ -492,8 +591,8 @@ useEffect(() => {
   return (
     <div className="container mx-auto px-4">
       <div className="flex flex-col my-4">
-        <h1 className="text-4xl font-bold my-2">Yolo predict tester</h1>
-        <p>Run your image through yolo model</p>
+        <h1 className="text-4xl font-bold my-2">YOLO predict tester</h1>
+        <p>Run your image or video through a YOLO model</p>
         <p> </p>
       </div>
       {isLoadingServerStatus === null ? null : (
@@ -502,90 +601,110 @@ useEffect(() => {
         </p>
       )}
 
-
-
-{isUploadPopupOpen && (
-  <div className="fixed z-10 inset-0 overflow-y-auto">
-    <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-      <div className="fixed inset-0 transition-opacity">
-        <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-      </div>
-
-      <div
-        className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-headline"
-      >
- <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-  <h3 className="text-lg leading-6 font-medium text-gray-900">
-    Upload a new model
-  </h3>
-  <p>{error}</p>
-          <form onSubmit={handleModelChangeUpload}>
-            <div>
-              <label htmlFor="model-file">Model file (.pt):</label>
-              <input type="file" id="model-file" name="model_file" required />
-            </div>
-            <div>
-              <label htmlFor="photo">Photo (optional):</label>
-              <input type="file" id="photo" name="photo" />
-            </div>
-            <div>
-              <label htmlFor="description">Description (optional):</label>
-              <textarea id="description" name="description" value={description} onChange={e => setDescription(e.target.value)} />
-            </div>
-            <div>
-              <button type="submit">Upload</button>
-              <button type="button" onClick={() => setIsUploadPopupOpen(false)}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      {isUploadPopupOpen && (
+       <div className="fixed z-10 inset-0 overflow-y-auto flex items-center justify-center ">
+       <div className="bg-gray-500 bg-opacity-75 fixed inset-0"></div>
+     
+       <div
+         className="bg-gray-900 rounded-lg text-left text-white overflow-hidden shadow-xl transform transition-all sm:w-full sm:max-w-lg border-2 "
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-headline"
+       >
+         <div className=" p-4 sm:p-6">
+           <h3 className="text-lg leading-6 font-medium ">
+             Upload a new model
+           </h3>
+           {error && <p className="text-red-500">{error}</p>}
+           <form onSubmit={handleModelUpload} className="mt-4">
+             <div>
+               <label htmlFor="model-file" className="block text-sm font-medium text-gray-400">Model file (.pt):</label>
+               <input
+                 type="file"
+                 id="model-file"
+                 name="model_file"
+                 required
+                 className="mt-1 block w-full"
+               />
+             </div>
+             <div className="mt-4">
+               <label htmlFor="photo" className="block text-sm font-medium text-gray-400">Photo (optional):</label>
+               <input type="file" id="photo" name="photo" className="mt-1 block w-full" />
+             </div>
+             <div className="mt-4">
+               <label htmlFor="description" className="block text-sm font-medium text-gray-400">Description (optional):</label>
+               <textarea
+                 id="description"
+                 name="description"
+                 value={description}
+                 onChange={(e) => setDescription(e.target.value)}
+                 className="mt-1 block w-full border text-black border-gray-300 rounded-md"
+               />
+             </div>
+             <div className="mt-4 flex justify-end">
+               <button type="button" onClick={() => setIsUploadPopupOpen(false)} className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                 Cancel
+               </button>
+               <button type="submit" className="text-sm font-medium text-white bg-teal-700 hover:bg-teal-900  px-4 py-2 rounded "
+        >
+                 Upload
+               </button>
+             </div>
+           </form>
+         </div>
+       </div>
+     </div>
+      )}
 
       <hr className="my-4 border-gray-700" />
 
       <div className="flex flex-col">
-      <div style={{ display: "flex", flexDirection: "row" }}>
-  <div style={{ flex: 1 }}>
-    <h2>Select a Model</h2>
-    <select
-      id="model-select"
-      onChange={async (event) => await handleModelChange(event)}
-      disabled={isLoading}
-      value={currentModel}
-      style={{ width: "80%", color: "black" }}
-    >
-      {models.map((modelDir: string, index: number) => (
-        <option key={index} value={modelDir}>
-          {modelDir}
-        </option>
-      ))}
-    </select>
-    <h2>Description</h2>
-    <p>
-      {isLoadingModelData
-        ? "Loading model description..."
-        : modelDescription || "No model description"}
-    </p>
-  </div>
-  <div style={{ flex: 1 }}>
-    {isLoadingModelData ? (
-      <p>Loading model image...</p>
-    ) : modelPhoto && modelPhoto.trim() !== "" ? (
-      <div style={{ display: "flex", justifyContent: "center" }}>
-        <img src={modelPhoto} alt="Model" />
-      </div>
-    ) : (
-      <p>No model photo</p>
-    )}
-  </div>
-</div>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <div style={{ flex: 1 }}>
+            <p className="text-xl mt-2">Select a Model</p>
+            <select
+              id="model-select"
+              onChange={async (event) => await handleModelChange(event)}
+              disabled={isLoading}
+              value={currentModel}
+              style={{ width: "80%", color: "black" }}
+            >
+              {models.map((modelDir: string, index: number) => (
+                <option key={index} value={modelDir}>
+                  {modelDir}
+                </option>
+              ))}
+            </select>
+            <h2>Description</h2>
+            <p>
+              {isLoadingModelData
+                ? "Loading model description..."
+                : modelDescription || "No model description"}
+            </p>
+          </div>
+          <div style={{ flex: 1, flexDirection: "column"  }}>
+            {isLoadingModelData ? (
+              <p>Loading model image...</p>
+            ) : modelPhoto && modelPhoto.trim() !== "" ? (
+              <div>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                 <img src={modelPhoto} alt="Model image" style={{ maxHeight: "400px" }} />
+                 
+              </div>
+              <button
+              onClick={downloadModel}
+              className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded mt-4"
+            >
+              Download model
+            </button>
+            </div>
+              
+            ) : (
+              <p>No model photo</p>
+              
+            )}
+          </div>
+        </div>
         {/* <div className="flex flex-col items-end max-w-1/2">
             <p>Current model: </p>{" "}
             <p className="text-white font-bold">
@@ -608,15 +727,16 @@ useEffect(() => {
         {/* </div> */}
       </div>
 
-
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
-      <button onClick={() => setIsUploadPopupOpen(true)}   className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded mt-4"
-        >
-  Upload a new model
-</button>
+      <button
+        onClick={() => setIsUploadPopupOpen(true)}
+        className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded mt-4"
+      >
+        Upload a new model
+      </button>
 
-  {/*     <input
+      {/*     <input
         type="file"
         id="model-input"
         onChange={handleModelChangeUpload}
@@ -625,29 +745,42 @@ useEffect(() => {
       /> */}
 
       <hr className="my-4 border-gray-700" />
+
+      <div >
       <p className="text-xl mt-2">Select an image</p>
-      <div className="flex flex-row mt-2 space-x-4">
-  {sharedImages.map((image, index) => (
+      <div className="flex flex-row flex-wrap">
+      {sharedImages.map((image, index) => (
+  <div 
+    key={index} 
+    className="relative w-32 h-32 m-2 transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50"
+    onClick={() => setCurrentImage(`${SERVER_URL}/shared_images/${image.filename}`)}
+  >
     <img
-      key={index}
-      src={`${SERVER_URL}/shared_images/${image}`}
-      alt={image}
-      className="w-24 h-24 object-cover transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50"
-      onClick={() =>
-        setCurrentImage(`${SERVER_URL}/shared_images/${image}`)
-      }
-    />
-  ))}
-  {/* {userImages.map((image, index) => (
+  src={`${SERVER_URL}/${image.is_video ? 'shared_thumbnails' : 'shared_images'}/${image.is_video ? image.thumbnail : image.filename}`}
+  alt={image.filename}
+  className={`object-cover w-full h-full ${image.is_video ? 'filter brightness-50' : ''}`}
+/>
+    {image.is_video && (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" className="w-12 h-12 text-white">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4v16l15-8-15-8z" />
+        </svg>
+      </div>
+    )}
+  </div>
+))}
+        {/* {userImages.map((image, index) => (
     <img 
       key={index} 
       src={`${SERVER_URL}/user_images/${userId}/${image}`} 
       alt={image} 
-      className="w-32 h-32 object-cover transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50" 
+      className="w-32 h-32 object-cover m-2 transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50" 
       onClick={() => setCurrentImage(`${SERVER_URL}/user_images/${userId}/${image}`)}
     />
   ))} */}
-</div>
+      </div>
+      </div>
+
 
       <div className="flex flex-col mt-4">
         <p className="text-xl mt-2">Or upload a new image</p>
@@ -699,89 +832,95 @@ useEffect(() => {
 
 
 
-      {image ? (
+{isResultReceived && (
+  <div className="container mx-auto my-2">
+    <hr className="my-4 border-gray-700" />
+    <p className="text-xl mt-2">Result</p>
 
-        
+    <p className="mb-2">Model used: {modelUsed}</p>
+    {isNewModelUploaded && (
+      <button
+        onClick={reUploadImage}
+        className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded"
+      >
+        Re-run
+      </button>
+    )}
 
-      <div className="container mx-auto my-2">
-              <hr className="my-4 border-gray-700" />
-        <p className="text-xl mt-2">Result</p>
-
-        <p className="mb-2">Model used: {modelUsed}</p>
-        {image && isNewModelUploaded && (
-          <button
-            onClick={reUploadImage}
-            className="bg-teal-700 hover:bg-teal-900 text-white py-2 px-4 rounded"
-          >
-            Re-run
-          </button>
+    <div className="mt-2">
+      <div style={{ display: "flex" }}>
+        <button
+          onClick={() => setActiveTab("image")}
+          style={{
+            fontWeight: activeTab === "image" ? "bold" : "normal",
+            color: activeTab === "image" ? "teal" : undefined,
+            flex: 1,
+            padding: "1em",
+            borderTop: "1px solid transparent",
+            borderLeft: "1px solid transparent",
+            borderRight: "1px solid transparent",
+            borderBottom:
+              activeTab === "image" ? "2px solid" : "1px solid",
+            borderBottomColor: activeTab === "image" ? "teal" : "dimgrey",
+          }}
+        >
+          Image
+        </button>
+        <button
+          onClick={() => setActiveTab("json")}
+          style={{
+            fontWeight: activeTab === "json" ? "bold" : "normal",
+            color: activeTab === "json" ? "teal" : undefined,
+            flex: 1,
+            padding: "1em",
+            borderTop: "1px solid transparent",
+            borderLeft: "1px solid transparent",
+            borderRight: "1px solid transparent",
+            borderBottom:
+              activeTab === "json" ? "2px solid" : "1px solid",
+            borderBottomColor: activeTab === "json" ? "teal" : "dimgrey",
+          }}
+        >
+          JSON
+        </button>
+      </div>
+      <div className="mt-4" >
+        {activeTab === "image" && data?.type === 'image' && (
+          <img
+            src={`data:image/jpeg;base64,${data?.image}`}
+            alt="Processed"
+            className="w-full h-full object-contain"
+          />
         )}
-
-        <div className="mt-2">
-          <div style={{ display: "flex" }}>
-            <button
-              onClick={() => setActiveTab("image")}
-              style={{
-                fontWeight: activeTab === "image" ? "bold" : "normal",
-                color: activeTab === "image" ? "teal" : undefined,
-                flex: 1,
-                padding: "1em",
-                borderTop: "1px solid transparent",
-                borderLeft: "1px solid transparent",
-                borderRight: "1px solid transparent",
-                borderBottom: activeTab === "image" ? "2px solid" : "1px solid",
-                borderBottomColor: activeTab === "image" ? "teal" : "dimgrey",
-              }}
-            >
-              Image
-            </button>
-            <button
-              onClick={() => setActiveTab("json")}
-              style={{
-                fontWeight: activeTab === "json" ? "bold" : "normal",
-                color: activeTab === "json" ? "teal" : undefined,
-                flex: 1,
-                padding: "1em",
-                borderTop: "1px solid transparent",
-                borderLeft: "1px solid transparent",
-                borderRight: "1px solid transparent",
-                borderBottom: activeTab === "json" ? "2px solid" : "1px solid",
-                borderBottomColor: activeTab === "json" ? "teal" : "dimgrey",
-              }}
-            >
-              JSON
-            </button>
-          </div>
-          <div className="mt-4" style={{ height: "500px" }}>
-            {activeTab === "image" &&
-              (image ? (
-                <img
-                  src={image}
-                  alt="Processed"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="w-full h-full"></div>
-              ))}
-          </div>
-          {activeTab === "json" && (
-            <div
-              style={{
-                fontSize: "0.8em",
-                whiteSpace: "pre-wrap",
-                wordWrap: "break-word",
-              }}
-            >
-              {results.map((result, index) => (
-                <div className="mt-4" key={index}>
-                  <p>{`Result ${index + 1}`}</p>
-                  <pre>{result}</pre>
-                </div>
-              ))}
+        {activeTab === "image" && data?.type === 'video' && (
+  <div className="flex flex-wrap">
+    {results.map((result, index) => (
+      <div key={index} className="w-full md:w-1/2 p-2">
+        <img src={`data:image/jpeg;base64,${result.annotated_image}`} alt={`Frame ${result.frame}`} className="w-full h-auto" />
+      </div>
+    ))}
+  </div>
+)}
+      </div>
+      {activeTab === "json" && (
+        <div
+          style={{
+            fontSize: "0.8em",
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+          }}
+        >
+          {results.map((result, index) => (
+            <div className="mt-4" key={index}>
+              <p>{`Result ${index + 1}`}</p>
+              <pre>{result}</pre>
             </div>
-          )}
+          ))}
         </div>
-      </div> ) : null }
+      )}
+    </div>
+  </div>
+)}
 
       {isLoading && <p className="mt-4">Loading...</p>}
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
