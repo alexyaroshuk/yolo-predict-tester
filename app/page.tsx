@@ -258,13 +258,13 @@ export default function Home() {
       setData(responseData); // Set data to the response data
       setIsResultReceived(true);
       /* console.log("5"); */
-    /* } catch (error) {
+    } catch (error) {
       console.error();
       let errorMessage = "An error occurred";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      setError(errorMessage); */
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
    
