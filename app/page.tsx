@@ -523,8 +523,8 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 mb-32">
       <div className="flex flex-col my-4">
-        <h1 className="text-4xl font-bold my-2">YOLO predict tester</h1>
-        <p>Run your image or video through a YOLO model</p>
+        <h1 className="text-4xl font-bold my-2">Landscape types YOLO tester</h1>
+        <p>Run your landscape image or video through a YOLO model</p>
       </div>
       {!isResultReceived && !isLoading && (
         <div className="container mx-auto ">
