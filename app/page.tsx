@@ -517,7 +517,7 @@ export default function Home() {
   const getServerStatusText = () => {
     if (isLoadingServerStatus) return "Loading server status...";
     if (serverStatus === "online") return "Online";
-    return "Offline, or out of memory. Try relaoding in a minute.";
+    return "Offline, or out of memory. Try reloading in a minute.";
   };
 
   return (
