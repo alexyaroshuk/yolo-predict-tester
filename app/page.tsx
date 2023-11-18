@@ -517,7 +517,7 @@ export default function Home() {
   const getServerStatusText = () => {
     if (isLoadingServerStatus) return "Loading server status...";
     if (serverStatus === "online") return "Online";
-    return "Offline. Сервер отключается если нет трафика в течение 15 минут. Попробуйте снова через 1 минуту.";
+    return "Offline, or out of memory. Try relaoding in a minute.";
   };
 
   return (
