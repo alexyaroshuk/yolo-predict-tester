@@ -258,23 +258,18 @@ export default function Home() {
 
       // Assuming the response data has a property 'image' which holds the image data
     } catch (error) {
-      // If the fetch request is aborted due to timeout, show a specific error message
-      if (error.name === 'AbortError') {
-        setError('The server took too long to respond. It may have run out of memory.');
-      } else {
-        console.error();
-        let errorMessage = "An error occurred";
-        if (error instanceof Error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          setError('The server took too long to respond. It may have run out of memory.');
+        } else {
+          let errorMessage = "An error occurred";
           errorMessage = error.message;
+          setError(errorMessage);
         }
-        setError(errorMessage);
+      } else {
+        console.error("Caught an exception that was not an Error instance:", error);
       }
-    } finally {
-      setIsLoading(false);
-
-      setError(null);
     }
-  };
 
   const toggleImage = () => {
     if (isOriginal) {
@@ -1091,4 +1086,4 @@ export default function Home() {
       )}
     </div>
   );
-}
+                                }}
