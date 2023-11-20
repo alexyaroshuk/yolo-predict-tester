@@ -637,20 +637,20 @@ export default function Home() {
           <div className="flex flex-col">
             <div className="flex flex-col md:flex-row">
               <div className="w-full md:w-1/2 p-2">
-                <p className="text-xl mt-2">Select a Model</p>
+                <p className="text-xl mt-2">Select a Model (2.7 без масок, в данное время не поддерживается)</p>
                 <select
-                  id="model-select"
-                  onChange={async (event) => await handleModelChange(event)}
-                  disabled={isLoading}
-                  value={currentModel}
-                  style={{ width: "80%", color: "black" }}
-                >
-                  {models.map((modelDir: string, index: number) => (
-                    <option key={index} value={modelDir}>
-                      {modelDir}
-                    </option>
-                  ))}
-                </select>
+  id="model-select"
+  onChange={async (event) => await handleModelChange(event)}
+  disabled={isLoading}
+  value={currentModel}
+  style={{ width: "80%", color: "black" }}
+>
+  {models.map((modelDir: string, index: number) => (
+    <option key={index} value={modelDir} disabled={index === 0}>
+      {index === 0 ? `${modelDir} (модель пока не поддерживается)` : modelDir}
+    </option>
+  ))}
+</select>
                 <div className="mt-2">
                   <h2>Description</h2>
                   <p>
