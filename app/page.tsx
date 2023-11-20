@@ -214,16 +214,10 @@ export default function Home() {
         formData.append("type", type);
       }
 
-          // Set a timeout for the fetch request
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-
-
       const predictResponse = await fetch(PREDICT_URL, {
-      method: "POST",
-      body: formData,
-      credentials: "include", // Include cookies
-      signal: controller.signal, // Pass the abort signal
+        method: "POST",
+        body: formData,
+        credentials: "include", // Include cookies
       });
       console.log("3");
       if (!predictResponse.ok) {
@@ -257,23 +251,15 @@ export default function Home() {
       setData(responseData); // Set data to the response data
       setIsResultReceived(true);
 
-          clearTimeout(id); // Clear the timeout if the request is successful
-
-
       // Assuming the response data has a property 'image' which holds the image data
     } catch (error) {
-  if (error instanceof Error) {
-    if (error.name === 'AbortError') {
-      setError('The server took too long to respond. It may have run out of memory.');
-    } else {
+      console.error();
       let errorMessage = "An error occurred";
-      errorMessage = error.message;
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       setError(errorMessage);
-    }
-  } else {
-    console.error("Caught an exception that was not an Error instance:", error);
-  }
-} finally {
+    } finally {
       setIsLoading(false);
 
       setError(null);
