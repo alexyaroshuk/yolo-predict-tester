@@ -98,7 +98,7 @@ export default function Home() {
   const [models, setModels] = useState<string[]>([]);
   const [diskContent, setDiskContent] = useState<string[]>([]);
 
-  const SERVER_URL = process.env.SERVER_URL;
+  const SERVER_URL = 'https://yolopredicttester.onrender.com';
 
   const GETMODELS_URL = `${SERVER_URL}/models`;
   const PREDICT_URL = `${SERVER_URL}/predict`;
