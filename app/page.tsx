@@ -98,7 +98,7 @@ export default function Home() {
   const [models, setModels] = useState<string[]>([]);
   const [diskContent, setDiskContent] = useState<string[]>([]);
 
-  const SERVER_URL = 'https://yolopredicttester.onrender.com';
+  const SERVER_URL = process.env.SERVER_URL;
 
   const GETMODELS_URL = `${SERVER_URL}/models`;
   const PREDICT_URL = `${SERVER_URL}/predict`;
@@ -214,16 +214,11 @@ export default function Home() {
         formData.append("type", type);
       }
 
-    // Set a timeout for the fetch request
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-
-    const predictResponse = await fetch(PREDICT_URL, {
-      method: "POST",
-      body: formData,
-      credentials: "include", // Include cookies
-      signal: controller.signal, // Pass the abort signal
-    });
+      const predictResponse = await fetch(PREDICT_URL, {
+        method: "POST",
+        body: formData,
+        credentials: "include", // Include cookies
+      });
       console.log("3");
       if (!predictResponse.ok) {
         throw new Error(`HTTP error! status: ${predictResponse.status}`);
@@ -258,18 +253,18 @@ export default function Home() {
 
       // Assuming the response data has a property 'image' which holds the image data
     } catch (error) {
+      console.error();
+      let errorMessage = "An error occurred";
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          setError('The server took too long to respond. It may have run out of memory.');
-        } else {
-          let errorMessage = "An error occurred";
-          errorMessage = error.message;
-          setError(errorMessage);
-        }
-      } else {
-        console.error("Caught an exception that was not an Error instance:", error);
+        errorMessage = error.message;
       }
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+
+      setError(null);
     }
+  };
 
   const toggleImage = () => {
     if (isOriginal) {
@@ -1086,4 +1081,4 @@ export default function Home() {
       )}
     </div>
   );
-                                }}
+}
