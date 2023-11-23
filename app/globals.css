@@ -38,3 +38,26 @@ body {
         transform: rotate(360deg);
     }
 }
+
+
+/* For Webkit browsers like Chrome and Safari */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: teal;
+}
+
+
+/* For Firefox */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: teal #f1f1f1;
+}
