@@ -175,6 +175,11 @@ export default function Home() {
     });
   }
 
+  const resetPage = () => {
+    setIsResultReceived(false);
+    setCurrentImage(null);
+  }
+
   const handlePredict = async () => {
     if (!currentImage && currentMediaIndex === null) {
       setError("No image or media selected for prediction.");
@@ -282,7 +287,7 @@ export default function Home() {
     setIsOriginal(!isOriginal);
   };
 
-  const fetchProjectStructure = async () => {
+/*   const fetchProjectStructure = async () => {
     try {
       const response = await fetch(`${SERVER_URL}/project_structure`);
       const data = await response.json();
@@ -290,7 +295,7 @@ export default function Home() {
     } catch (error) {
       console.error('Failed to fetch project structure:', error);
     }
-  };
+  }; */
 
   const handleMediaUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -843,7 +848,7 @@ export default function Home() {
               )}
             </div>
           </div>
-            <div className="flex flex-col mt-4">
+            {/* <div className="flex flex-col mt-4">
         <p className="text-xl mt-2">Check structure</p>
 
       <button onClick={fetchProjectStructure}>
@@ -851,12 +856,12 @@ export default function Home() {
 </button>
 <pre>{JSON.stringify(projectStructure, null, 2)}</pre>
 
-{/* <button onClick={fetchDiskContent}>
+<button onClick={fetchDiskContent}>
   Fetch Disk Content
 </button>
 // Display the disk content in a text element
-<pre>{JSON.stringify(diskContent, null, 2)}</pre> */}
-</div>
+<pre>{JSON.stringify(diskContent, null, 2)}</pre>
+</div> */}
         </div>
       )}
       {(isLoading || isResultReceived) && (
@@ -865,7 +870,7 @@ export default function Home() {
             type="button"
             className="text-sm font-medium text-white bg-teal-700 hover:bg-teal-900 px-4 py-2 rounded"
             onClick={() => {
-              setIsResultReceived(false);
+              resetPage();
             }}
           >
             &#8592; Back
