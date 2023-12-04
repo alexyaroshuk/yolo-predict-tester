@@ -718,7 +718,7 @@ export default function Home() {
             {/* </div> */}
           </div>
 
-          {error && <p style={{ color: "red" }}>Error: {error}</p>}
+          {/* {error && <p style={{ color: "red" }}>Error: {error}</p>} */}
 
           <button
             onClick={() => setIsUploadPopupOpen(true)}
