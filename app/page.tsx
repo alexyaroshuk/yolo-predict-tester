@@ -18,6 +18,8 @@ export default function Home() {
 
   const [isVideoThumbnail, setIsVideoThumbnail] = useState(false);
 
+  const [gifSrc, setGifSrc] = useState<string | null>(null);
+
   const [serverStatus, setServerStatus] = useState<string | null>(null);
   const [isLoadingServerStatus, setIsLoadingServerStatus] = useState<
     boolean | null
@@ -178,6 +180,7 @@ export default function Home() {
   const resetPage = () => {
     setIsResultReceived(false);
     setCurrentImage(null);
+    setGifSrc(null);
   }
 
   const handlePredict = async () => {
@@ -242,6 +245,10 @@ export default function Home() {
         setModelUsed(responseData.model_used); // Store the model used in state
         setData(responseData);
       } else if (responseData.type === "video") {
+
+        if (responseData.gif) {
+          setGifSrc(`data:image/gif;base64,${responseData.gif}`);
+        }
         // Handle video results
         // responseData.results is now an array of objects, each with a 'frame', 'results', and 'annotated_image' property
         setData(responseData);
@@ -926,7 +933,7 @@ export default function Home() {
                       </thead>
                     </table>
                     {data?.type === "video" && (
-                      <div>
+                      <div className="mt-4">
                         <h2>Summary for {data?.frames?.length} frames</h2>
                         <table style={{ tableLayout: "fixed", width: "100%" }}>
                           <thead>
@@ -1054,13 +1061,21 @@ export default function Home() {
 
                   {data?.type === "video" && (
                     <div className="flex flex-wrap">
+                      <h2 className="mt-2">Animated</h2>
+                      <div className=" w-full flex justify-center">
+                      
+                      {gifSrc && <img src={gifSrc} alt="Result GIF" />}
+                      </div>
+                      <div className=" w-full flex">
+                      <h2 className="mt-2">Frames</h2>
+                      </div>
                       {data?.frames?.map((frame, index) => (
                         <div key={index} className="w-full md:w-1/2 p-2">
                           <img
                             src={`data:image/jpeg;base64,${frame.annotated_image}`}
                             className="w-full h-auto"
                           />
-                          <table
+                          <table className="my-4"
                             style={{ tableLayout: "fixed", width: "100%" }}
                           >
                             <thead>
