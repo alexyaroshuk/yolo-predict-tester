@@ -230,10 +230,10 @@ export default function Home() {
         method: "POST",
         body: formData,
         credentials: "include", // Include cookies
-       
+
       });
 
- 
+
       console.log("3");
       if (!predictResponse.ok) {
         throw new Error(`HTTP error! status: ${predictResponse.status}`);
@@ -649,7 +649,7 @@ export default function Home() {
           <div className="flex flex-col">
             <div className="flex flex-col md:flex-row">
               <div className="w-full md:w-1/2 p-2">
-                <p className="text-xl mt-2">Select a Model (2.7 без масок, в данное время не поддерживается)</p>
+                <p className="text-xl mt-2">Select a Model (2.7 is not supported at the moment)</p>
                 <select
   id="model-select"
   onChange={async (event) => await handleModelChange(event)}
@@ -659,7 +659,7 @@ export default function Home() {
 >
   {models.map((modelDir: string, index: number) => (
     <option key={index} value={modelDir} disabled={index === 0}>
-      {index === 0 ? `${modelDir} (модель пока не поддерживается)` : modelDir}
+      {index === 0 ? `${modelDir} (model is not supported at the moment)` : modelDir}
     </option>
   ))}
 </select>
@@ -744,7 +744,7 @@ export default function Home() {
                   {sharedImages.map((image, index) => (
                     <div
                       key={index}
-                      className={`relative w-32 h-32 m-2 transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50 
+                      className={`relative w-32 h-32 m-2 transition duration-500 ease-in-out transform hover:scale-105 hover:opacity-50
                     ${
                       currentMediaIndex === index
                         ? "border-4 border-teal-500"
@@ -1063,7 +1063,7 @@ export default function Home() {
                     <div className="flex flex-wrap">
                       <h2 className="mt-2">Animated</h2>
                       <div className=" w-full flex justify-center">
-                      
+
                       {gifSrc && <img src={gifSrc} alt="Result GIF" />}
                       </div>
                       <div className=" w-full flex">
